@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Baby Names: Input</title>
+		<link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+		<link rel="stylesheet" href="style/style_index.css" type="text/css" media="screen"/>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<script src="js/d3.v4.js"></script>
+	</head>
+
+	<body>
+		<form id="dataForm" action="data.html">
+			<!-- The title of our form -->
+			<h1 align="center"><img src="assets/Oryx.png" height="90" width="90"><br>Baby Names</h1>
+			<h2 align="center">Data Science Model</h2>
+			<h3 align="left" id="constraint">Dynamic</h3>
+
+			<!-- Tabs for each section we would like the user to complete -->
+			<div class="tab">Enter your last name:
+			  <p><input type="text" name='surn' placeholder="Last name..." oninput="this.className = ''" id="surn"></p>
+			</div>
+
+			<div class="tab">What sex names are you after?
+			    <p><input type="radio" name="gender" value="M" checked/>Boy
+				<br><input type="radio" name="gender" value="F"/>Girl<p>
+			</div>
+
+			<div class="tab">Similarity score options:
+			    <p><input type="radio" name="scoring" value="L" id='NA'/><label for="NA" id="chng">Phonetics</label>
+				<br><input type="radio" name="scoring" value="T"/>Alphabet
+			    <br><input type="radio" name="scoring" value="N" id='GG' checked/>None<p>
+			</div>
+
+			<div class="tab">Do you want to remove alliteration?
+			    <p><input type="radio" name="allit" value="Y" checked/>Yes
+				<br><input type="radio" name="allit" value="N"/>No<p>
+			</div>
+
+			<div class="tab">Which popularity profile do you prefer?
+				<p><input type="radio" name="popul" value="popular" checked>Popular
+				<br><input type="radio" name="popul" value="upcoming">Upcoming
+				<br><input type="radio" name="popul" value="decline">Declining
+				<br><input type="radio" name="popul" value="stable">Stable<p>
+			</div>
+
+			<div style="overflow:auto;">
+			  <div style="float:right;">
+			    <button type="button" class="bttn" id="prevBtn" onclick="nextPrev(-1)">Previous</button>
+			    <button type="button" class="bttn" id="nextBtn" onclick="nextPrev(1)">Next</button>
+			  </div>
+			</div>
+
+			<!-- Circles for the steps through the form -->
+			<div class="circle_pos">
+			  <span class="step"></span>
+			  <span class="step"></span>
+			  <span class="step"></span>
+			  <span class="step"></span>
+			  <span class="step"></span>
+			</div>
+
+		</form>
+
+		<script>
+			var myx = screen.width;
+			if (myx < 420) {
+				constraint.innerText = "Note: on mobile devices the pool of first names data is reduced to optimise performance. This process can still use several Mb of data if not on WiFI.";
+			} else {
+				constraint.innerText = "Note: on non-mobile devices the complete pool of first names is being used.";				
+			}
+			
+			var currentTab = 0; // Current tab is set to be the first tab (0)
+			showTab(currentTab); // Display the current tab
+
+			function showTab(n) {
+			  // This function will display the specified tab of the form ...
+			  var x = document.getElementsByClassName("tab");
+			  x[n].style.display = "block";
+			  // ... and fix the Previous/Next buttons:
+			  if (n == 0) {
+			    document.getElementById("prevBtn").style.display = "none";
+			  } else {
+			    document.getElementById("prevBtn").style.display = "inline";
+			  }
+			  if (n == (x.length - 1)) {
+			    document.getElementById("nextBtn").innerHTML = "Submit";
+			  } else {
+			    document.getElementById("nextBtn").innerHTML = "Next";
+			  }
+			  // ... and run a function that displays the correct step indicator:
+			  fixStepIndicator(n)
+
+			  // When it gets to the scoring grey out the name if not found
+			  if (n == 2) {
+			  	// Return the user entered name
+			  	var surn_data = document.getElementById("surn").value;
+			  	var surn_data = surn_data.toUpperCase();
+
+  				d3.json("data/lastnames_pop.json", function(error, data) {
+  					if (error) throw error;
+
+  					// Filter for our input string
+					data = data.filter(function(d) {return d['Surname'] == surn_data});
+					var mylen = data.length;
+
+					if (mylen == 0) {
+			  			document.getElementById('NA').disabled="true";
+			  			document.getElementById('chng').style.color="#E5E5E5";
+			  			document.getElementById('GG').checked="true";
+					} else {
+			  			document.getElementById('NA').removeAttribute("disabled");
+			  			document.getElementById('chng').style.color="black";						
+					}
+  				});
+			  }
+			}
+
+			function nextPrev(n) {
+			  // This function will figure out which tab to display
+			  var x = document.getElementsByClassName("tab");
+			  // Exit the function if any field in the current tab is invalid:
+			  if (n == 1 && !validateForm()) return false;
+			  // Hide the current tab:
+			  x[currentTab].style.display = "none";
+			  // Increase or decrease the current tab by 1:
+			  currentTab = currentTab + n;
+			  // if you have reached the end of the form... :
+			  if (currentTab >= x.length) {
+			    //...the form gets submitted:
+			    document.getElementById("dataForm").submit();
+			    return false;
+			  }
+			  // Otherwise, display the correct tab:
+			  showTab(currentTab);
+			}
+
+			function validateForm() {
+			  // This function deals with validation of the form fields
+			  var x, y, i, valid = true;
+			  x = document.getElementsByClassName("tab");
+			  y = x[currentTab].getElementsByTagName("input");
+			  // A loop that checks every input field in the current tab:
+			  for (i = 0; i < y.length; i++) {
+			    // If a field is empty...
+			    if (y[i].value == "") {
+			      // add an "invalid" class to the field:
+			      y[i].className += " invalid";
+			      // and set the current valid status to false:
+			      valid = false;
+			    }
+			  }
+			  // If the valid status is true, mark the step as finished and valid:
+			  if (valid) {
+			    document.getElementsByClassName("step")[currentTab].className += " finish";
+			  }
+			  return valid; // return the valid status
+			}
+
+			function fixStepIndicator(n) {
+			  // This function removes the "active" class of all steps...
+			  var i, x = document.getElementsByClassName("step");
+			  for (i = 0; i < x.length; i++) {
+			    x[i].className = x[i].className.replace(" active", "");
+			  }
+			  //... and adds the "active" class to the current step:
+			  x[n].className += " active";
+			}
+		</script>
+	</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Baby Names: Data</title>
+		<link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+		<link rel="stylesheet" href="style/style_data.css" type="text/css" media="screen"/>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<script src="js/d3.v4.js"></script>
+	</head>
+
+	<body>
+		<div class="page_header">
+			<h1>Suggestions</h1>
+			<h2>Clicking on any of the rows in the below table will load a trend chart for that name.</h2>
+	    </div>
+	    <div id="grid"></div>
+	    <div id="chrt" height></div>
+	    </div>
+	    <div class="page_footer">
+	    	<h3>Created by PenguinStrikes<br>
+	    	<a href="https://www.google.co.uk">Link to methodology article</a></h3>
+	    </div>
+		<script type="text/javascript">
+			// Gather the expected parameters from the URL
+			var url = new URL(window.location.href)
+			var gender  = url.searchParams.get("gender");
+			var sorter  = url.searchParams.get("popul");
+			var allit   = url.searchParams.get("allit");
+
+			var scoring = url.searchParams.get("scoring");
+			var surname = url.searchParams.get("surn");
+
+			var test = levenshteinDistance(surname, 'dottie')
+			create_table(gender, sorter); // Function to build our grid for holding the names
+
+			function create_table(gender, sorter) {
+				// Get the latest value from the radio button selection
+				//var gender = d3.select('input[name="gender"]:checked').node().value
+				var myx = screen.width;
+				if (myx < 420) {
+					var file = "data/frstnames_pop_red.json";
+				} else {
+					var file = "data/frstnames_pop.json";
+				};
+
+				// Get the whole dataset for processing before building the table
+				d3.json(file, function(error, data) {
+					if (error) throw error;
+					var grid = divGrid();
+
+					// Filter out gender
+					data = data.filter(function(d) {return d['Sex'] == gender});
+
+					if (allit == 'Y') {
+						var one_letter = surname.substring(0, 1);
+						data = data.filter(function(d) {return d['Name'].substring(0, 1) != one_letter});
+					}
+					// Extra filter based on the popularity trends
+					//var sorter = d3.select('input[name="popul"]:checked').node().value;
+
+					if (sorter == 'upcoming') {
+						data = data.filter(function(d) {
+							return (d['trend_profile'] == 'RECENT BOOM') | 
+							       (d['trend_profile'] == 'GROWING BOOM') |
+							       (d['trend_profile'] == 'GROWTH STABILISING')});
+					} else if (sorter == 'decline') {
+						data = data.filter(function(d) {
+							return (d['trend_profile'] == 'RECENT DECLINE') | 
+							       (d['trend_profile'] == 'GROWING DECLINE') |
+							       (d['trend_profile'] == 'DECLINE STABILISING')});
+					} else if (sorter == 'stable') {
+						data = data.filter(function(d) {
+							return (d['trend_profile'] == 'CURRENTLY STABLE') |
+						           (d['trend_profile'] == 'DECLINE STABILISING') |
+						           (d['trend_profile'] == 'GROWTH STABILISING')});
+					};
+
+					var phone = '';
+					if (scoring == 'L') {
+						d3.json("data/lastnames_pop.json", function(error, datum) {
+			  				if (error) throw error;
+							datum = datum.filter(function(d) {return d['Surname'] == surname});
+							var phone = datum[0]['phonetics_space'];
+							console.log(phone);
+						});
+					}
+					
+
+					for (var i = 0, j = data.length; i < j; i++) {
+						name = data[i]['Name'];
+						if (scoring == 'N') {
+							data[i]['Score'] = 0;
+						} else if (scoring == 'T') {
+							data[i]['Score'] = levenshteinDistance(surname, data[i]['Name']);
+						} else {
+							data[i]['Score'] = levenshteinDistance(phone, data[i]['phonetics_space']);
+						};
+					};
+
+					dps = data.map(function(d) { return {
+						Name:          d['Name'],
+						Rank:          d['Rank'],
+						Prediction:    d['Predicted Change'],
+						Score:         d['Score'],
+						Phonetics:     d['phonetics_space'],
+						trnd:          d['trend_data'],
+						futu:          d['trend_2018']
+					};});
+
+					data = [];
+
+						dps.sort(function(a, b) {
+							return d3.ascending(a.Rank, b.Rank);
+						});
+
+
+					d3.select("#grid")
+						.datum(dps)
+						.call(grid)
+						.selectAll(".row")
+						.on("click", function(d) {nameSelect(d['trnd'], d['futu'], gender)})
+				});
+			};
+
+			function divGrid() {
+				var columns = [];
+				var dg = function(selection) {
+					if (columns.length == 0) columns = d3.keys(selection.data()[0][0]);
+					selection.selectAll(".header")
+						.data([true])
+						.enter().append("div")
+						.attr("class", "header")
+
+					var header = selection.select(".header")
+						.selectAll(".cell")
+						.data(columns);
+
+					header.enter().append("div")
+						.attr("class", function(d, i) {return "col-" + i;})
+						.classed("cell", true)
+
+					selection.selectAll(".header .cell")
+						.text(function(d) {return d});
+
+					header.exit().remove();
+
+					var rows = selection.selectAll(".row")
+						.data(function(d) {return d});
+
+					rows.enter().append("div")
+						.attr("class", "row")
+					rows.exit().remove();
+
+					var cells = selection.selectAll(".row").selectAll(".cell")
+						.data(function(d) {return columns.map(function(col) {return d[col];})})
+
+					cells.enter().append("div")
+						.attr("class", function(d, i) {return "col-" + i;})
+						.classed("cell", true)
+					cells.exit().remove();
+
+					selection.selectAll(".cell")
+						.text(function(d) {return d;});
+				return dg;
+				};
+
+				dg.columns = function(_) {
+					if (!arguments.length) return columns;
+					columns = _;
+					return this;
+				};
+				return dg;
+			};
+
+
+			function nameSelect(trend, future, gender) {
+				d3.select("#chrt").selectAll("svg").remove();
+				var w = (document.getElementById('chrt').offsetWidth * 0.88 ) - 60;
+				var h = (document.getElementById('chrt').offsetHeight * 0.90 ) - 10;
+
+				var x = d3.scaleLinear().domain([new Date(2000), new Date(2019)]).range([0, w])
+				var maxx = d3.max(trend, function(d) {return +d;});
+
+				var y = d3.scaleLinear().domain([0, maxx]).range([h, 0]);
+
+				var valueline = d3.line()
+					.x(function(d, i) {return x(i + 2000);})
+					.y(function(d) {return y(d);})
+
+				var graph = d3.select('#chrt').append("svg:svg")
+					.attr("width", w + 60)
+					.attr("height", h + 30)
+					.append("svg:g")
+					.attr("transform", "translate(" + 45 + "," + 10 + ")");
+
+				graph.append("svg:path")
+					.attr("d", valueline(trend))
+					.attr("class", "line_" + gender)
+
+				graph.append("circle")
+			      .attr("r", 3.5)
+			      .attr("cx", function(d, i) {return x(2018);})
+			      .attr("cy", function(d) {return y(future);})
+			      .style("fill", "red");
+
+				graph.append("g")
+					.attr("class", "axisMute")
+					.call(d3.axisLeft(y));
+
+				graph.append("g")
+					.attr("transform", "translate(0," + h + ")")
+					.attr("class", "axisMute")
+					.call(d3.axisBottom(x).tickFormat(d3.format("d")));
+			};
+
+			// Function for calculating levenshtein distance on two strings
+			// This is used when the scoring is either alphabet or phonetics
+			function levenshteinDistance (a, b) {
+			    if(!a || !b) return (a || b).length;
+			    var m = [];
+			    for(var i = 0; i <= b.length; i++){
+			        m[i] = [i];
+			        if(i === 0) continue;
+			        for(var j = 0; j <= a.length; j++){
+			            m[0][j] = j;
+			            if(j === 0) continue;
+			            m[i][j] = b.charAt(i - 1) == a.charAt(j - 1) ? m[i - 1][j - 1] : Math.min(
+			                m[i-1][j-1] + 1,
+			                m[i][j-1] + 1,
+			                m[i-1][j] + 1
+			            );
+			        }
+			    }
+			    var operations = m[b.length][a.length];
+			    return Math.round((1-(operations/(Math.max(a.length, b.length)))) * 100, 2)
+
+
+			};
+		</script>
+	</body>
+</html>

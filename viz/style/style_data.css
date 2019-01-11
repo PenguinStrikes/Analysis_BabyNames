@@ -1,0 +1,140 @@
+@media only screen 
+and (min-width : 480px)
+and (max-width : 2024px)  {
+
+  h1 {margin-bottom: 0px}
+  h2 {font-size: 16px; margin-top: 0px; margin-bottom: 30px;}
+  h3 {font-size: 14px; margin-top: 0px; margin-bottom: 0px;}
+
+  .row, .header {
+	clear: left;
+	font-size: 15px;
+	line-height: 16px;
+	height: 16px;
+	margin-left: 20%;
+	margin-right: 20%;
+  }
+
+  #chrt {
+  	grid-area: bott;
+    margin-left: 20%;
+	margin-right: 20%;
+  }
+
+  .col-0 {width: 30%;}
+  .col-1 {width: 10%;}
+  .col-2 {width: 23%;}
+  .col-3 {width: 10%;}
+  .col-4 {width: 27%;}
+  .col-5 {width: 0%;}
+  .col-6 {width: 0%;}
+  .row:hover {text-shadow: -1px 1px 8px #ffc, 1px -1px 8px #737373; }
+  .header {font-weight: bold;}
+  .cell {
+	float: left;
+	overflow: hidden;
+	white-space: nowrap;
+	height: 19px;
+  }
+
+}
+
+@media only screen 
+and (min-width : 320px) 
+and (max-width : 480px) {
+
+  h1 {margin: 0 0 0 0px; padding: 5px;}
+  h2 {font-size: 12px; margin-top: 0px; margin-bottom: 20px;}
+  h3 {font-size: 12px; margin-top: 0px; margin-bottom: 0px;}
+
+  .row, .header {
+	clear: left;
+	font-size: 11px;
+	line-height: 16px;
+	height: 16px;
+  }
+
+  #chrt {
+  	grid-area: bott;
+    margin-left: 0%;
+	margin-right: 0%;
+  }
+
+  .col-0 {width: 30%;}
+  .col-1 {width: 10%;}
+  .col-2 {width: 23%;}
+  .col-3 {width: 10%;}
+  .col-4 {width: 27%; font-size: 9px}
+  .col-5 {width: 0%;}
+  .col-6 {width: 0%;}
+  .row:hover {text-shadow: -1px 1px 8px #ffc, 1px -1px 8px #737373; }
+  .header {font-weight: bold;}
+  .cell {
+	float: left;
+	overflow: hidden;
+	white-space: nowrap;
+	height: 19px;
+  }
+
+}
+
+/* Main styling */
+body {
+  display: grid;
+  grid-template-areas:
+	"header"
+	"topp"
+	"bott "
+	"footer";
+  grid-template-rows: 16% 32% 30% 8%;
+  grid-template-columns: 100%;
+  grid-row-gap: 1%;
+  grid-column-gap: 0%;
+  height: 100vh;
+  margin: 0;
+  background-color: #F8F8F8;
+  font-family: 'Montserrat';
+  text-align: center;
+}
+
+/* Grid layout positions and attachment */
+.page_header {grid-area: header;}
+.page_footer {grid-area: footer; margin: 0 0 0 0px; padding: 0 0 0 0px;}
+
+
+
+/* Table styles */
+#grid {
+	grid-area: topp;
+	color: #737373;
+	clear: both;
+	position: relative;
+	text-align: center;
+	overflow: auto;
+	white-space: nowrap;
+	max-height: 95%;
+}
+
+.line_M {
+	fill: none;
+	stroke: #8995BF;
+	stroke-width: 3px;
+}
+
+.line_F {
+	fill: none;
+	stroke: #F6978A;
+	stroke-width: 3px;
+}
+
+.axisMute line{
+  stroke: #BFC4C9;
+}
+
+.axisMute path{
+  stroke: #BFC4C9;
+}
+
+.axisMute text{
+  stroke: #BFC4C9;
+}
