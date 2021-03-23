@@ -19,7 +19,7 @@
 	    </div>
 	    <div class="page_footer">
 	    	<h3>Created by PenguinStrikes<br>
-	    	<a href="https://www.google.co.uk">Link to methodology article</a></h3>
+	    	<a href="https://towardsdatascience.com/can-data-science-help-you-pick-a-baby-name-b7e98a98268e">Link to methodology article</a></h3>
 	    </div>
 		<script type="text/javascript">
 			// Gather the expected parameters from the URL
@@ -27,6 +27,7 @@
 			var gender  = url.searchParams.get("gender");
 			var sorter  = url.searchParams.get("popul");
 			var allit   = url.searchParams.get("allit");
+			var nmlen   = url.searchParams.get("nmlen")
 
 			var scoring = url.searchParams.get("scoring");
 			var surname = url.searchParams.get("surn");
@@ -49,8 +50,23 @@
 					if (error) throw error;
 					var grid = divGrid();
 
-					// Filter out gender
-					data = data.filter(function(d) {return d['Sex'] == gender});
+					// Filter out GENDER if specified
+					if (gender != 'B') {
+						data = data.filter(function(d) {return d['Sex'] == gender});
+					}
+
+					if (nmlen == 'short') {
+						data = data.filter(function(d) {return d['syllables'] == 1});
+					}
+					if (nmlen == 'medium') {
+						data = data.filter(function(d) {return d['syllables'] == 2});
+					}
+					if (nmlen == 'long') {
+						data = data.filter(function(d) {return d['syllables'] == 3});
+					}
+					if (nmlen == 'vlong') {
+						data = data.filter(function(d) {return d['syllables'] > 3});
+					}
 
 					if (allit == 'Y') {
 						var one_letter = surname.substring(0, 1);
@@ -179,7 +195,7 @@
 				var w = (document.getElementById('chrt').offsetWidth * 0.88 ) - 60;
 				var h = (document.getElementById('chrt').offsetHeight * 0.90 ) - 10;
 
-				var x = d3.scaleLinear().domain([new Date(2000), new Date(2019)]).range([0, w])
+				var x = d3.scaleLinear().domain([new Date(2000), new Date(2021)]).range([0, w])
 				var maxx = d3.max(trend, function(d) {return +d;});
 
 				var y = d3.scaleLinear().domain([0, maxx]).range([h, 0]);
@@ -200,7 +216,7 @@
 
 				graph.append("circle")
 			      .attr("r", 3.5)
-			      .attr("cx", function(d, i) {return x(2018);})
+			      .attr("cx", function(d, i) {return x(2020);})
 			      .attr("cy", function(d) {return y(future);})
 			      .style("fill", "red");
 

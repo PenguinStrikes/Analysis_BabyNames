@@ -181,10 +181,10 @@ def year_data(df, Year1, Year2, sx):
     return y1, y2
 
 def produce_trends(totals):
-    dte = list(range(2000,2018))
+    dte = list(range(2000,2020))
     X = np.array(dte).reshape(-1,1)
     lst = [i for i in range(0, len(dte), 4)]
-    lst.append(18)
+    lst.append(20)
     lst = list(np.diff(lst)[::-1])
 
     master = []
@@ -212,7 +212,7 @@ def produce_trends(totals):
             min_scor.append(float(str(round(reg.score(X[strt:strt+gap], data_list[strt:strt+gap]),2))))
             min_coef.append(float(str(round(reg.coef_[0],2))))
             strt = strt + gap
-            prediction_fut = int(reg.predict(2018))
+            prediction_fut = int(reg.predict(2020))
             
         profile = trend_profile(min_coef)
 
@@ -236,7 +236,7 @@ def produce_trends(totals):
 
     df_trends = pd.DataFrame(master, columns=['Name','Sex','trend_data','trend_profile',
                                               'trend_pred','trend_score','trend_coef',
-                                              'trend_2018','batch_pred','batch_score','batch_coef'])
+                                              'trend_2020','batch_pred','batch_score','batch_coef'])
     return df_trends, dte
 
 
